@@ -34,25 +34,40 @@ def BDT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
     timestr = time.strftime("%Y%m%d-%H%M%S")
     print(timestr)
 
+    bestDT1 = DecisionTreeClassifier(max_depth=8/2,
+                                            ccp_alpha=0.001,
+                                            random_state=50)
+
+    bestDT2 = DecisionTreeClassifier(max_depth=16/2,
+                                            ccp_alpha=0.0004,
+                                            random_state=50)
+
     thisAlgFile = 'Boosting1.json'
     # Setting up the scaling pipeline
-    pipeline_order = [('scaler', StandardScaler()), ('bdt', AdaBoostClassifier(DecisionTreeClassifier(max_depth=2),
+    pipeline_order1 = [('scaler', StandardScaler()), ('bdt', AdaBoostClassifier(bestDT1,
                          algorithm="SAMME",
                          n_estimators=200))]
+
+    pipeline_order2 = [('scaler', StandardScaler()), ('bdt', AdaBoostClassifier(bestDT2,
+                         algorithm="SAMME",
+                         n_estimators=200))]
+
     #NOTE USING MAX-DEPTH >2 WAS OVERFITTING
 
-    BDTpipe = Pipeline(pipeline_order)
+    BDTpipe = Pipeline(pipeline_order1)
     # Fitting the classfier to the scaled dataset
     bdt_classifier_scaled1 = BDTpipe.fit(set1X_train, set1y_train)
 
     # Extracting the score
     print(bdt_classifier_scaled1.score(set1X_train, set1y_train))
+    print(bdt_classifier_scaled1.get_params())
     # Testing accuracy on the test data
     bdt_classifier_scaled1.score(set1X_test, set1y_test)
     print(bdt_classifier_scaled1.score(set1X_test, set1y_test))
 
     # pipe2 = Pipeline(pipeline_order)
 
+    BDTpipe = Pipeline(pipeline_order2)
     # Fitting the classfier to the scaled dataset
     bdt_classifier_scaled2 = BDTpipe.fit(set2X_train, set2y_train)
 
@@ -60,12 +75,13 @@ def BDT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
     print(bdt_classifier_scaled2.score(set2X_train, set2y_train))
     # Testing accuracy on the test data
     bdt_classifier_scaled1.score(set2X_test, set2y_test)
+    print(bdt_classifier_scaled2.get_params())
     print(bdt_classifier_scaled2.score(set2X_test, set2y_test))
 
     # Creating a grid of different hyperparameters
     grid_params = {
-        'bdt__n_estimators': [1000,2000,3000,4000,5000],
-        'bdt__learning_rate':[(2**x)/100 for x in range(5)]+[1]
+        'bdt__n_estimators': [10,20,30,50,75,100,150],
+        'bdt__learning_rate':[0.01, 0.02, 0.04, 0.08, 0.16, 1, 1.25]
     }
 
     # Building a 10 fold Cross Validated GridSearchCV objertjgchjct
@@ -82,25 +98,25 @@ def BDT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
     print(rf_best1)
 
     title = "Data1 Boosted Decision Trees"
-    plt = plot_learning_curve(rf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(rf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
-    # fig, axes = plt.subplots(3, 2, figsize=(10, 15))
+    fig, axes = plt.subplots(3, 2, figsize=(10, 15))
     plt.savefig('Data1 BDT LC'+timestr+'.png')
     plt.show()
 
     # Building a 10 fold Cross Validated GridSearchCV object
     grid_object = GridSearchCV(estimator=bdt_classifier_scaled2, param_grid=grid_params, scoring='accuracy', cv=8,
                                n_jobs=-1)
-
+    #
     # Fitting the grid to the training data
     grid_object.fit(set2X_train, set2y_train)
 
     # Extracting the best parameters
     print(grid_object.best_params_)
     rf_best2 = grid_object.best_estimator_
-
+    #
     title = "Data2 Boosted Decision Trees"
-    plt = plot_learning_curve(rf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(rf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
 
     # fig, axes = plt.subplots(3, 2, figsize=(10, 15))
@@ -120,24 +136,13 @@ def BDT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
     # NEED TWO COMPLEXITY CURVES OF HYPERPARAMETERS:
     # 1. Weak learners (n_estimators?)
     # 2. learning_rate
-    n_estimators = [1000,1500,2000,2500,2800,3000,4000] #40,60,80,150,
+    n_estimators = [10,20,30,50,75,100,150, 180, 200]# [1000,2000,3000,4000,5000,10000] #40,60,80,150,
     vc.make_validation(set1X_train, set1y_train, 'Set1', rf_best1, "Boosted Decision Tree", 'bdt__n_estimators', n_estimators)
 
     vc.make_validation(set2X_train, set2y_train, 'Set2', rf_best2, "Boosted Decision Tree", 'bdt__n_estimators', n_estimators)
 
-    pipeline_order = [('scaler', StandardScaler()),
-                      ('bdt', AdaBoostClassifier(DecisionTreeClassifier(max_depth=2),
-                         algorithm="SAMME",
-                         n_estimators=200))]
-    DTpipe_param1 = Pipeline(pipeline_order)
 
-    pipeline_order = [('scaler', StandardScaler()),
-                      ('bdt', AdaBoostClassifier(DecisionTreeClassifier(max_depth=2),
-                         algorithm="SAMME",
-                         n_estimators=200))]
-    DTpipe_param2 = Pipeline(pipeline_order)
-
-    learning_rates = [.5,1,1.25,1.5,1.75,2.0] #.01,.02,.04,.06,
+    learning_rates = [0.1, 0.5,.8,1,1.25,1.5,1.75,2.0] #.01,.02,.04,.06,
     vc.make_validation(set1X_train, set1y_train, 'Set1', rf_best1, "Boosted Decision Tree", 'bdt__learning_rate',
                        learning_rates)
 
@@ -147,10 +152,12 @@ def BDT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
     # best params after MC tuning:
     newrf_best1 = Pipeline(steps=[('scaler', StandardScaler()),
                                   ('bdt',
-                                   AdaBoostClassifier(n_estimators=1500,
-                                                 learning_rate=1.5))])
+                                   AdaBoostClassifier(bestDT1,
+                                                      algorithm="SAMME",
+                                                      n_estimators=200,
+                                                 learning_rate=1))])
     title = "Boosting data1"
-    plt = plot_learning_curve(newrf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(newrf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
     plt.savefig('Data1 Boosting Learning Curve' + timestr + '.png')
     plt.show()
@@ -170,10 +177,12 @@ def BDT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
 
     newrf_best2 = Pipeline(steps=[('scaler', StandardScaler()),
                                   ('bdt',
-                                   AdaBoostClassifier(n_estimators=2000,
-                                                 learning_rate=1.3))])
+                                   AdaBoostClassifier(bestDT2,
+                                                      algorithm="SAMME",
+                                                      n_estimators=200,
+                                                 learning_rate=0.6))])
     title = "Boosting data2"
-    plt = plot_learning_curve(newrf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(newrf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
     plt.savefig('Data2 Boosting Learning Curve' + timestr + '.png')
     plt.show()

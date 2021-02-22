@@ -44,9 +44,6 @@ def make_validation(X,y, data_set_name, model, model_name, param_name, param_ran
         plt.xticks(param_list_range,labels)
         #plt.xticks(ticks, labels)
     else:
-        print(param_range)
-        print(train_scores_mean)
-        print(train_scores_std)
         plt.plot(param_range, train_scores_mean, label="Training score",
                      color="darkorange", lw=lw)
         plt.fill_between(param_range, train_scores_mean - train_scores_std,

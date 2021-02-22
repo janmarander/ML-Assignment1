@@ -40,7 +40,7 @@ def DT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
 
     thisAlgFile = 'DT1.json'
     # Setting up the scaling pipeline
-    pipeline_order = [('scaler', StandardScaler()), ('dt', DecisionTreeClassifier(criterion = 'gini', random_state = 50))]
+    pipeline_order = [('scaler', StandardScaler()), ('dt', DecisionTreeClassifier(criterion = 'gini', random_state = 50, n_jobs = -1))]
     DTpipe = Pipeline(pipeline_order)
     # Fitting the classfier to the scaled dataset
     dt_classifier_scaled1 = DTpipe.fit(set1X_train, set1y_train)
@@ -84,7 +84,7 @@ def DT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
     print(rf_best1)
 
     title = "Decision Trees"
-    plt = plot_learning_curve(rf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(rf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
 
     # fig, axes = plt.subplots(3, 2, figsize=(10, 15))
@@ -103,7 +103,7 @@ def DT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
     rf_best2 = grid_object.best_estimator_
 
     title = "Decision Trees"
-    plt = plot_learning_curve(rf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(rf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
 
     # fig, axes = plt.subplots(3, 2, figsize=(10, 15))
@@ -190,7 +190,7 @@ def DT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
                                             random_state=50))])
 
     title = "Decision Trees data1"
-    plt = plot_learning_curve(newrf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5))
+    plt = plot_learning_curve(newrf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=-1, train_sizes=np.linspace(.1, 1.0, 5))
     plt.savefig('Data1 Decision Trees Learning Curve' + timestr + '.png')
     plt.show()
 
@@ -211,7 +211,7 @@ def DT(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
                                             ccp_alpha=0.0004,
                                             random_state=50))])
     title = "Decision Trees data2"
-    plt = plot_learning_curve(newrf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(newrf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
     plt.savefig('Data2 Decision Trees Learning Curve' + timestr + '.png')
     plt.show()

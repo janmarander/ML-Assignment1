@@ -42,7 +42,7 @@ def KNN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
 
     thisAlgFile = 'KNN1.json'
     # Setting up the scaling pipeline
-    pipeline_order = [('scaler', StandardScaler()), ('knn', KNeighborsClassifier(weights='uniform'))]
+    pipeline_order = [('scaler', StandardScaler()), ('knn', KNeighborsClassifier(weights='uniform',n_jobs = -1))]
     pipe1 = Pipeline(pipeline_order)
     pipe1.fit(set1X_train, set1y_train)
 
@@ -100,7 +100,7 @@ def KNN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
     rf_best1 = knn_grid1.best_estimator_
 
     title = "KNN"
-    plt = plot_learning_curve(rf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5))
+    plt = plot_learning_curve(rf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=-1, train_sizes=np.linspace(.1, 1.0, 5))
     #fig, axes = plt.subplots(3, 2, figsize=(10, 15))
     plt.savefig('Data1 KNN LC'+timestr+'.png')
     plt.show()
@@ -116,7 +116,7 @@ def KNN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
     rf_best2 = knn_grid2.best_estimator_
 
     title = "KNN"
-    plt = plot_learning_curve(rf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(rf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
     plt.savefig('Data2 KNN LC'+timestr+'.png')
     plt.show()
@@ -219,7 +219,7 @@ def KNN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
                                            weights='uniform',
                                            metric='manhattan'))])
     title = "KNN data1"
-    plt = plot_learning_curve(newrf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(newrf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
     plt.savefig('Data1 KNN Learning Curve' + timestr + '.png')
     plt.show()
@@ -242,7 +242,7 @@ def KNN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
                                                         weights='uniform',
                                                         metric='euclidean'))])
     title = "KNN data2"
-    plt = plot_learning_curve(newrf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(newrf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
     plt.savefig('Data2 KNN Learning Curve' + timestr + '.png')
     plt.show()

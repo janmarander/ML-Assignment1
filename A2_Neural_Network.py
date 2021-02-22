@@ -36,7 +36,7 @@ def NN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
 
     thisAlgFile = 'ANN1.json'
     # Setting up the scaling pipeline
-    pipeline_order = [('scaler', StandardScaler()), ('nn', MLPClassifier(max_iter=1000,learning_rate='constant'))]
+    pipeline_order = [('scaler', StandardScaler()), ('nn', MLPClassifier(max_iter=1000,activation = 'tanh', learning_rate='constant'))]
     NNpipe = Pipeline(pipeline_order)
     # Fitting the classfier to the scaled dataset
     nn_classifier_scaled1 = NNpipe.fit(set1X_train, set1y_train)
@@ -47,7 +47,7 @@ def NN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
     nn_classifier_scaled1.score(set1X_test, set1y_test)
     print(nn_classifier_scaled1.score(set1X_test, set1y_test))
 
-    # pipe2 = Pipeline(pipeline_order)
+    pipe2 = Pipeline(pipeline_order)
 
     # Fitting the classfier to the scaled dataset
     nn_classifier_scaled2 =NNpipe.fit(set2X_train, set2y_train)
@@ -62,9 +62,9 @@ def NN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
 
     grid_params = {
         'nn__hidden_layer_sizes': [(50,50,50), (50,100,50), (50,100), (100,)],
-        'nn__activation': ['tanh', 'relu'],
-        'nn__solver': ['sgd', 'adam'],
-        'nn__alpha': [0.0001, 0.001, 0.01, 0.05, 0.1] #[0.0001, 0.05],
+        # 'nn__activation': ['tanh', 'relu'],
+        # 'nn__solver': ['sgd', 'adam'],
+        'nn__alpha': [0.001, 0.05, 0.1, .5, .8] #[0.0001, 0.05],
         #'nn__learning_rate': ['constant','adaptive'],
     }
 
@@ -85,7 +85,7 @@ def NN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
     plt = plot_learning_curve(rf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=None,
                               train_sizes=np.linspace(.1, 1.0, 5))
 
-    # fig, axes = plt.subplots(3, 2, figsize=(10, 15))
+    #fig, axes = plt.subplots(3, 2, figsize=(10, 15))
     plt.savefig('Data1 Neural Network LC'+timestr+'.png')
     plt.show()
 
@@ -109,7 +109,7 @@ def NN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
     plt = plot_learning_curve(rf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=None,
                               train_sizes=np.linspace(.1, 1.0, 5))
 
-    # fig, axes = plt.subplots(3, 2, figsize=(10, 15))
+    #fig, axes = plt.subplots(3, 2, figsize=(10, 15))
     plt.savefig('Data2 Neural Network LC'+timestr+'.png')
     plt.show()
 
@@ -134,7 +134,9 @@ def NN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
     # NEED TWO COMPLEXITY CURVES OF HYPERPARAMETERS:
     # 1. Hidden Layers, Width, Depth????
     # 2. ???? pick something else
-    nn__hidden_layer_sizes= [(20,20,20), (50,50,50), (50,100,50), (50,100), (100,), (50)]
+
+    nn__hidden_layer_sizes= [(20,20,20), (50,50,50), (50,100,50), (50,100), (100,), (50,)]
+    #nn__hidden_layer_sizes = [(100, 500, 100), (50, 100, 50), (50, 50, 50), (20, 20, 20), (100, 500), (50, 100),  (500,), (100,), (50,), (20,)]
     vc.make_validation(set1X_train, set1y_train, 'Set1', rf_best1, "Neural Network", 'nn__hidden_layer_sizes', nn__hidden_layer_sizes)
 
     vc.make_validation(set2X_train, set2y_train, 'Set2', rf_best2, "Neural Network", 'nn__hidden_layer_sizes', nn__hidden_layer_sizes)
@@ -148,7 +150,7 @@ def NN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
                       ('nn', MLPClassifier(max_iter=500))]
     NNpipe_param2 = Pipeline(pipeline_order)
 
-    nn__alphas =  [float(0.0001), float(0.001), float(0.01), float(0.05), float(0.1)],
+    nn__alphas =  [0.01, 0.05, 0.08, 0.1, .15, .3, .45, .5, ]
     vc.make_validation(set1X_train, set1y_train, 'Set1', rf_best1, "Neural Network", 'nn__alpha',
                        nn__alphas)
 
@@ -162,9 +164,9 @@ def NN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
                      MLPClassifier(max_iter=500,
                                    learning_rate = 'constant',
                                    solver = 'sgd',
-                                   activation = 'relu',
-                                   hidden_layer_sizes=(100,),
-                                   alpha=0.0001))])
+                                   activation = 'tanh',
+                                   hidden_layer_sizes=(50, 100),
+                                   alpha=0.3))])
     title = "Neural Network data1"
     plt = plot_learning_curve(newrf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5))
     plt.savefig('Data1 Neural Network Learning Curve' + timestr + '.png')
@@ -188,7 +190,7 @@ def NN(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test,
                                    learning_rate='constant',
                                    solver='adam',
                                    activation='tanh',
-                                   hidden_layer_sizes=(50, 100),
+                                   hidden_layer_sizes=(50, 100, 50),
                                    alpha=0.05))])
     title = "Neural Network data2"
     plt = plot_learning_curve(newrf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5))

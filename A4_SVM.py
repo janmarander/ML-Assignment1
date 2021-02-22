@@ -43,7 +43,7 @@ def SVM(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
 
     thisAlgFile = 'SVM1.txt'
     # Setting up the scaling pipeline
-    pipeline_order = [('scaler', StandardScaler()), ('svm', svm.SVC(max_iter=2000))]
+    pipeline_order = [('scaler', StandardScaler()), ('svm', svm.SVC(max_iter=1000, kernel='rbf'))]
 
     SVMpipe = Pipeline(pipeline_order)
     # Fitting the classfier to the scaled dataset
@@ -69,8 +69,9 @@ def SVM(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
 
     # Creating a grid of different hyperparameters
     grid_params = {
-        'svm__C': np.logspace(-2, 10, 5),
-        'svm__kernel': ['linear', 'rbf']#, 'poly', 'sigmoid']#, 'precomputed']
+        'svm__C': np.logspace(-2, 10, 13),
+        'svm__gamma': np.logspace(-9, 3, 13)
+        #'svm__kernel': ['linear', 'rbf']#, 'poly', 'sigmoid']#, 'precomputed']
         #ccp_alpha': [0, .00005, .0002, .0003, .0004, .0005, .001]
         # 'svm__min_samples_leaf': [0.0001,0.001, 0.005,0.02,0.04, 0.06, 0.08, .1, .2, .5]
     }
@@ -89,65 +90,67 @@ def SVM(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
 
     print(rf_best1)
 
-    title = "Data1 SVM"
-    plt = plot_learning_curve(rf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=None,
-                              train_sizes=np.linspace(.1, 1.0, 5))
-
-    # fig, axes = plt.subplots(3, 2, figsize=(10, 15))
-    plt.savefig('Data1 SVM LC'+timestr+'.png')
-    plt.show()
+    # title = "Data1 SVM"
+    # plt = plot_learning_curve(rf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
+    #                           train_sizes=np.linspace(.1, 1.0, 5))
+    #
+    # # fig, axes = plt.subplots(3, 2, figsize=(10, 15))
+    # plt.savefig('Data1 SVM LC'+timestr+'.png')
+    # plt.show()
 
     # Building a 10 fold Cross Validated GridSearchCV object
     grid_object = GridSearchCV(estimator=svm_classifier_scaled2, param_grid=grid_params, scoring='accuracy', cv=8,
                                n_jobs=-1)
 
-    # Fitting the grid to the training data
-    grid_object.fit(set2X_train, set2y_train)
+    # # Fitting the grid to the training data
+    # grid_object.fit(set2X_train, set2y_train)
+    #
+    # # Extracting the best parameters
+    # print(grid_object.best_params_)
+    # rf_best2 = grid_object.best_estimator_
+    #
+    # title = "Data2 SVM"
+    # plt = plot_learning_curve(rf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
+    #                           train_sizes=np.linspace(.1, 1.0, 5))
+    #
+    # # fig, axes = plt.subplots(3, 2, figsize=(10, 15))
+    # plt.savefig('Data2 SVM LC'+timestr+'.png')
+    # plt.show()
+    #
+    # data1 = {'X_train': set1X_train, 'X_test': set1X_test, 'y_train': set1y_train, 'y_test': set1y_test}
+    # data2 = {'X_train': set2X_train, 'X_test': set2X_test, 'y_train': set2y_train, 'y_test': set2y_test}
+    #
+    # # NEED TWO COMPLEXITY CURVES OF HYPERPARAMETERS:
+    # # 1. Kernel
+    # # 2. C
+    #
+    # Cs = [0.5,1,3,5,7,9,11,13]
+    #     #np.logspace(-2, 10, 13)
+    # vc.make_validation(set1X_train, set1y_train, 'Set1', rf_best1, "SVM", 'svm__C', Cs)
+    #
+    # vc.make_validation(set2X_train, set2y_train, 'Set2', rf_best2, "SVM", 'svm__C', Cs)
+    #
+    # pipeline_order = [('scaler', StandardScaler()),
+    #                   ('svm', svm.SVC(max_iter=1000))]
+    # SVMpipe_param1 = Pipeline(pipeline_order)
+    #
+    # pipeline_order = [('scaler', StandardScaler()),
+    #                   ('svm', svm.SVC(max_iter=1000))]
+    # SVMpipe_param2 = Pipeline(pipeline_order)
 
-    # Extracting the best parameters
-    print(grid_object.best_params_)
-    rf_best2 = grid_object.best_estimator_
+    # kernels = ['linear', 'poly', 'rbf', 'sigmoid']
+    # vc.make_validation(set1X_train, set1y_train, 'Set1', rf_best1, "SVM", 'svm__kernel',
+    #                    kernels)
+    #
+    # vc.make_validation(set2X_train, set2y_train, 'Set2', rf_best2, "SVM", 'svm__kernel',
+    #                    kernels)
 
-    title = "Data2 SVM"
-    plt = plot_learning_curve(rf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=None,
-                              train_sizes=np.linspace(.1, 1.0, 5))
+    gammas= [0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16, .20, .25] #[0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2]
+    vc.make_validation(set1X_train, set1y_train, 'Set1', rf_best1, "SVM", 'svm__gamma',
+                       gammas)
 
-    # fig, axes = plt.subplots(3, 2, figsize=(10, 15))
-    plt.savefig('Data2 SVM LC'+timestr+'.png')
-    plt.show()
-
-    data1 = {'X_train': set1X_train, 'X_test': set1X_test, 'y_train': set1y_train, 'y_test': set1y_test}
-    data2 = {'X_train': set2X_train, 'X_test': set2X_test, 'y_train': set2y_train, 'y_test': set2y_test}
-
-
-    # GENERATE MODEL COMPLEXITY CURVES!!!!
-
-    # TUNED PARAMETERS:
-
-
-    # NEED TWO COMPLEXITY CURVES OF HYPERPARAMETERS:
-    # 1. Kernel
-    # 2. C
-
-    Cs = [1,5,7,9,12,15,30] #np.logspace(-2, 10, 13)
-    vc.make_validation(set1X_train, set1y_train, 'Set1', rf_best1, "SVM", 'svm__C', Cs)
-
-    vc.make_validation(set2X_train, set2y_train, 'Set2', rf_best2, "SVM", 'svm__C', Cs)
-
-    pipeline_order = [('scaler', StandardScaler()),
-                      ('svm', svm.SVC(max_iter=2000))]
-    SVMpipe_param1 = Pipeline(pipeline_order)
-
-    pipeline_order = [('scaler', StandardScaler()),
-                      ('svm', svm.SVC(max_iter=2000))]
-    SVMpipe_param2 = Pipeline(pipeline_order)
-
-    kernels = ['linear', 'poly', 'rbf', 'sigmoid']
-    vc.make_validation(set1X_train, set1y_train, 'Set1', rf_best1, "SVM", 'svm__kernel',
-                       kernels)
-
-    vc.make_validation(set2X_train, set2y_train, 'Set2', rf_best2, "SVM", 'svm__kernel',
-                       kernels)
+    # vc.make_validation(set2X_train, set2y_train, 'Set2', rf_best2, "SVM", 'svm__gamma',
+    #                    gammas)
 
 
     # configurations = [
@@ -191,11 +194,12 @@ def SVM(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
     # best params after MC tuning:
     newrf_best1 = Pipeline(steps=[('scaler', StandardScaler()),
                                   ('svm',
-                                   svm.SVC(max_iter=2000,
-                                           C=10,
+                                   svm.SVC(max_iter=1500,
+                                           C=3,
+                                           gamma = .04,
                                            kernel='rbf'))])
     title = "SVM data1"
-    plt = plot_learning_curve(newrf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(newrf_best1, title, set1X_train, set1y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
     plt.savefig('Data1 SVM Learning Curve' + timestr + '.png')
     plt.show()
@@ -214,11 +218,12 @@ def SVM(set1X_train, set1X_test, set1y_train, set1y_test,set2X_train, set2X_test
 
     newrf_best2 = Pipeline(steps=[('scaler', StandardScaler()),
                                   ('svm',
-                                   svm.SVC(max_iter=2000,
-                                                 C=10,
+                                   svm.SVC(max_iter=1500,
+                                                 C=1,
+                                           gamma = 1,
                                                  kernel='rbf'))])
     title = "SVM data2"
-    plt = plot_learning_curve(newrf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=None,
+    plt = plot_learning_curve(newrf_best2, title, set2X_train, set2y_train, axes=None, ylim=None, cv=None, n_jobs=-1,
                               train_sizes=np.linspace(.1, 1.0, 5))
     plt.savefig('Data2 SVM Learning Curve' + timestr + '.png')
     plt.show()

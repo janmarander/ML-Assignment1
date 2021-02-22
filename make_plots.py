@@ -15,27 +15,79 @@ from sklearn.svm import SVC
 from sklearn.datasets import load_digits
 from sklearn.model_selection import ShuffleSplit
 
-def plot_loss_curve1(clfObj,trgX,trgY,tstX,tstY,params,clf_type=None,dataset=None):
-    np.random.seed(42)
-    cv = ms.GridSearchCV(clfObj,n_jobs=1,param_grid=params,refit=True,verbose=10,cv=5,scoring='accuracy')
-    cv.fit(trgX,trgY)
-    regTable = pd.DataFrame(cv.cv_results_)
-    regTable.to_csv('./output/ITER_base_{}_{}.csv'.format(clf_type,dataset),index=False)
-    d = defaultdict(list)
-    name = list(params.keys())[0]
-    for value in list(params.values())[0]:
-        d['param_{}'.format(name)].append(value)
-        clfObj.set_params(**{name:value})
-        clfObj.fit(trgX,trgY)
-        pred = clfObj.predict(trgX)
-        d['train acc'].append(balanced_accuracy(trgY,pred))
-        clfObj.fit(trgX,trgY)
-        pred = clfObj.predict(tstX)
-        d['test acc'].append(balanced_accuracy(tstY,pred))
-        print(value)
-    d = pd.DataFrame(d)
-    d.to_csv('./output/ITERtestSET_{}_{}.csv'.format(clf_type,dataset),index=False)
-    return cv
+def plot_loss_curve2(estimator, title, X, y, axes=None, ylim=None, cv=None,
+                        n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5)):
+    #FROM: https: // scikit - learn.org / stable / auto_examples / model_selection / plot_learning_curve.html
+    """
+    """
+    if axes is None:
+        #_, axes = plt.subplots(1, 3, figsize=(20, 5))
+        _, axes = plt.subplots(1, 2, figsize=(20, 5))
+
+    X_train, X_VAL, y_train, y_VAL = sk.model_selection.train_test_split(X, y, test_size=0.3,
+                                                                                           random_state=42,
+                                                                                           stratify=y)
+
+    axes[0].set_title(title)
+    if ylim is not None:
+        axes[0].set_ylim(*ylim)
+    axes[0].set_xlabel("Iterations")
+    axes[0].set_ylabel("Loss")
+
+    estimator.fit(X_train,y_train)
+    fit_losscurve = estimator['nn'].loss_curve_
+
+    estimator.score(X_train, y_train)
+
+
+    # train_sizes, train_scores, test_scores, fit_times, _ = \
+    #     learning_curve(estimator, X, y, scoring = 'accuracy', cv=cv, n_jobs=n_jobs,
+    #                    train_sizes=train_sizes,
+    #                    return_times=True)
+    #
+    # train_scores_mean = np.mean(train_scores, axis=1)
+    # train_scores_std = np.std(train_scores, axis=1)
+    # test_scores_mean = np.mean(test_scores, axis=1)
+    # test_scores_std = np.std(test_scores, axis=1)
+    # fit_times_mean = np.mean(fit_times, axis=1)
+    # fit_times_std = np.std(fit_times, axis=1)
+
+    # Plot loss curve
+    axes[0].grid()
+    # axes[0].fill_between(train_sizes, train_scores_mean - train_scores_std,
+    #                      train_scores_mean + train_scores_std, alpha=0.1,
+    #                      color="r")
+    # axes[0].fill_between(train_sizes, test_scores_mean - test_scores_std,
+    #                      test_scores_mean + test_scores_std, alpha=0.1,
+    #                      color="g")
+
+    axes[0].plot(estimator['nn'].loss_curve_)
+
+    # axes[0].plot(train_sizes, train_scores_mean, 'o-', color="r",
+    #              label="Training score")
+    # axes[0].plot(train_sizes, test_scores_mean, 'o-', color="g",
+    #              label="Cross-validation score")
+    axes[0].legend(loc="best")
+
+    # Plot n_samples vs fit_times
+    # axes[1].grid()
+    # axes[1].plot(train_sizes, fit_times_mean, 'o-')
+    # axes[1].fill_between(train_sizes, fit_times_mean - fit_times_std,
+    #                      fit_times_mean + fit_times_std, alpha=0.1)
+    # axes[1].set_xlabel("Training examples")
+    # axes[1].set_ylabel("fit_times")
+    # axes[1].set_title("Scalability of the model")
+
+    # # Plot fit_time vs score
+    # axes[2].grid()
+    # axes[2].plot(fit_times_mean, test_scores_mean, 'o-')
+    # axes[2].fill_between(fit_times_mean, test_scores_mean - test_scores_std,
+    #                      test_scores_mean + test_scores_std, alpha=0.1)
+    # axes[2].set_xlabel("fit_times")
+    # axes[2].set_ylabel("Score")
+    # axes[2].set_title("Performance of the model")
+
+    return plt
 
 def plot_loss_curve(estimator, title, X, y, axes=None, ylim=None, cv=None,
                         n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5)):
@@ -220,27 +272,5 @@ def plot_learning_curve(estimator, title, X, y, axes=None, ylim=None, cv=None,
     return plt
 
 
-# fig, axes = plt.subplots(3, 2, figsize=(10, 15))
-#
-# X, y = load_digits(return_X_y=True)
-#
-# title = "Learning Curves (Naive Bayes)"
-# # Cross validation with 100 iterations to get smoother mean test and train
-# # score curves, each time with 20% data randomly selected as a validation set.
-# cv = ShuffleSplit(n_splits=100, test_size=0.2, random_state=0)
-#
-# estimator = GaussianNB()
-# plot_learning_curve(estimator, title, X, y, axes=axes[:, 0], ylim=(0.7, 1.01),
-#                     cv=cv, n_jobs=4)
-#
-# title = r"Learning Curves (SVM, RBF kernel, $\gamma=0.001$)"
-# # SVC is more expensive so we do a lower number of CV iterations:
-# cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
-# estimator = SVC(gamma=0.001)
-# plot_learning_curve(estimator, title, X, y, axes=axes[:, 1], ylim=(0.7, 1.01),
-#                     cv=cv, n_jobs=4)
-#
-# plt.show()
-#
 
 
